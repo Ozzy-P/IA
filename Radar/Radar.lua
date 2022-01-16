@@ -278,7 +278,7 @@ local function NEGNSX()
 		-- Restrict out of bounds area
 		local Distance = CFrameTimesVector3(workspace.Camera.CFrame,target[3])
 		local Multiplier = 1
-		if target[6][1] > target[6][2] * .65 then Multiplier = .7 end
+		if target[6][1] > target[6][2] * .65 then Multiplier = .869 end
 		local X_Distance = (Distance - Vector3.new()).X--.Unit.X
 		local Z_Distance = (Distance - Vector3.new()).Z--.Unit.Z
 		-- Center of Radar.
