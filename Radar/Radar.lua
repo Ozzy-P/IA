@@ -6,7 +6,7 @@
 -- Planes: Blue
 
 
-local ScanTime = 1.5 -- Change time of each scan (disco mode?)
+local ScanTime = 2 -- Change time of each scan (disco mode?)
 local PlayerDetectionRadius = 75
 local ExecutiveDetectionRadius = 1500
 local PlaneDetectionRadius = 2000
@@ -111,7 +111,7 @@ Sector_4.Position = UDim2.new(0.25, 0, 0.25, 0)
 Sector_4.Rotation = 90.000
 Sector_4.Size = UDim2.new(0, 0, 0.479999989, 0)
 
-UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.45, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(76, 255, 0)), ColorSequenceKeypoint.new(0.51, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))}
+UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.35, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.46, Color3.fromRGB(46, 170, 0)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(76, 255, 0)), ColorSequenceKeypoint.new(0.51, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))}
 
 UIGradient.Offset = Vector2.new(0.7,0)
 --UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.35, 0.25), NumberSequenceKeypoint.new(0.50, 0.45), NumberSequenceKeypoint.new(0.65, 0.25), NumberSequenceKeypoint.new(1.00, 0.00)}
@@ -214,20 +214,20 @@ local function NEGNSX()
 	dragify(script.Parent)
 	
 	
-	
+	local Debris = game:GetService("Debris")
 	local TweenService = game:GetService("TweenService")
 	task.wait(.25)
-	local info = TweenInfo.new(ScanTime,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,-1,false,0)
+	local info = TweenInfo.new(ScanTime,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,0,false,0)
 	local Goals = {Sector1={Rotation = 180}}
 	local Scanner  = TweenService:Create(Scan, info, Goals.Sector1)
 	
 	
-	Scanner:Play()
 
 	--  Thx to: cxuu for magnitude on random devforum question
 	local Players = game:GetService('Players')
 	local LocalPlayer = Players.LocalPlayer
 	local RadarScaling = PlayerDetectionRadius + 20
+	local Scanned = Instance.new("BindableEvent")
 
 	local HR = {"Corporate Officer","Chief Executive Officer","Group Manager","Group Administrator","Vice Chairman","Chairman"}
 	-- scanPlayers, Return: [table], Args [nil]
@@ -248,24 +248,24 @@ local function NEGNSX()
 			end
 		end
 		for _,plane in pairs(workspace["Ins/InsClr"].Value:GetChildren()) do
-			if plane:FindFirstChild("planeKit") and plane.planeKit.PrimaryPart ~= nil then
-				local Magnitude = (workspace.Camera.CFrame.Position - plane.planeKit.PrimaryPart.CFrame.Position).magnitude
+		    if plane:FindFirstChild("planeKit") and plane.planeKit.PrimaryPart ~= nil then
+                local Magnitude = (workspace.Camera.CFrame.Position - plane.planeKit.PrimaryPart.CFrame.Position).magnitude
 				if Magnitude <= PlaneDetectionRadius then
-                    			local PlaneInformation = {plane.Name,Magnitude,plane.planeKit.PrimaryPart.Position,plane.planeKit,true,{Magnitude,PlaneDetectionRadius}}
-                    			table.insert(Nearby, PlaneInformation)
-                		end
-            		elseif plane:FindFirstChild("planeKit") and plane.planeKit.PrimaryPart == nil then
-                		for _,part in pairs(plane:GetDescendants()) do
-                    			if part.Name == "MainSeat" and part:IsA("Seat") then
-                        			local Magnitude = (workspace.Camera.CFrame.Position - part.CFrame.Position).magnitude
-						if Magnitude <= PlaneDetectionRadius then
-							local PlaneInformation = {plane.Name,Magnitude,part.Position,plane.planeKit,true,{Magnitude,PlaneDetectionRadius}}
-							table.insert(Nearby, PlaneInformation)
-						end
-					end
-				end
-			end
-		end
+                    local PlaneInformation = {plane.Name,Magnitude,plane.planeKit.PrimaryPart.Position,plane.planeKit,true,{Magnitude,PlaneDetectionRadius}}
+                    table.insert(Nearby, PlaneInformation)
+                end
+            elseif plane:FindFirstChild("planeKit") and plane.planeKit.PrimaryPart == nil then
+                for _,part in pairs(plane:GetDescendants()) do
+                    if part.Name == "MainSeat" and part:IsA("Seat") then
+                        local Magnitude = (workspace.Camera.CFrame.Position - part.CFrame.Position).magnitude
+				        if Magnitude <= PlaneDetectionRadius then
+                            local PlaneInformation = {plane.Name,Magnitude,part.Position,plane.planeKit,true,{Magnitude,PlaneDetectionRadius}}
+                            table.insert(Nearby, PlaneInformation)
+				        end
+                    end
+                end
+            end
+        end
 		return Nearby 
 	end
 	
@@ -290,7 +290,7 @@ local function NEGNSX()
 		Blip.Parent = script.Parent
 		local info = TweenInfo.new(ScanTime / 2,Enum.EasingStyle.Quad,Enum.EasingDirection.In,0,false,0)
 		local infoFast = TweenInfo.new(ScanTime / 4,Enum.EasingStyle.Quad,Enum.EasingDirection.In,0,false,0)
-		local Goals = {Fade={ImageTransparency = 1},FadeIn = {ImageTransparency = .4}}
+		local Goals = {Fade={ImageTransparency = 1},FadeIn = {ImageTransparency = .125}}
 		if target[5] == true then
 	        	Blip.ImageColor3 = Color3.new(0,0,255)
 	        	Blip.Size = UDim2.new(0.1, 0, 0.1, 0)
@@ -305,37 +305,40 @@ local function NEGNSX()
 		local FadeBlip  = TweenService:Create(Blip, info, Goals.Fade)
 		
 		FadeIn:Play()
+		
+		local FadeOut;FadeOut = FadeIn.Completed:Connect(function()
+		    FadeOut:Disconnect()
+		    FadeBlip:Play()
+            Debris:AddItem(Blip,ScanTime/2)
+        end)
 	
-	local DelayedDestruction = coroutine.wrap(function()
-		FadeIn.Completed:Wait()
-			FadeBlip:Play()
-			FadeBlip.Completed:Wait()
-			Blip:Destroy()
-		end)
-		DelayedDestruction()
 	end
 	
-
+    Scanner:Play()
+    
+    local ATC;ATC = Scanner.Completed:Connect(function()
+        Scanned:Fire()
+        Scan.Rotation = 0
+        Scanner:Play()
+    end)
 	
-	
-	local RadarMode = coroutine.wrap(function()
-		while _G.Scan == true do
-		    repeat wait() until Scan.Rotation > 175 and Scan.Rotation < 180 or _G.Scan == false
-			for _,foundPlayer in pairs(scanPlayers()) do
-				createBlip(foundPlayer)
-			end
+	local Results;Results=Scanned.Event:Connect(function()
+		for _,foundPlayer in pairs(scanPlayers()) do
+			createBlip(foundPlayer)
 		end
-		script.Parent.Parent:Destroy()
 	end)
-	
-	RadarMode()
+
 	-- GEvent, Return: [nil], Args [InputObject,bool]
 	local GEvent;GEvent = game:GetService("UserInputService").InputBegan:Connect(function(x,Observable)
 		if Observable then return end
 		if x.KeyCode == Enum.KeyCode.P then 
 			_G.Scan = false
 			Scanner:Cancel()
-			GEvent:Disconnect() return
+			ATC:Disconnect()
+			Results:Disconnect()
+			GEvent:Disconnect() 		
+			script.Parent.Parent:Destroy()
+			return
 		end
 	end)
 	
