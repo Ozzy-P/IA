@@ -295,11 +295,13 @@ local function NEGNSX()
 		if target[5] == true then
 	        	Blip.ImageColor3 = Color3.new(0,0,255)
 	        	Blip.Size = UDim2.new(0.1, 0, 0.1, 0)
+	        	Blip.ZIndex = 2
 	        	Goals.FadeIn.ImageTransparency = 0
 	    	elseif target[5] == "RUN." then
 	        	Blip.ImageColor3 = Color3.new(255,0,0)
-            		Blip.Size = UDim2.new(0.1, 0, 0.1, 0)
-            		Goals.FadeIn.ImageTransparency = 0
+            	Blip.Size = UDim2.new(0.1, 0, 0.1, 0)
+                Blip.ZIndex = 2
+            	Goals.FadeIn.ImageTransparency = 0
 	   	end
 	   	
 		local FadeIn  = TweenService:Create(Blip, infoFast, Goals.FadeIn)
