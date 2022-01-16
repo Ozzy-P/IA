@@ -314,13 +314,13 @@ local function NEGNSX()
 	
 	end
 	
-    Scanner:Play()
+   	Scanner:Play()
     
-    local ATC;ATC = Scanner.Completed:Connect(function()
-        Scanned:Fire()
-        Scan.Rotation = 0
-        Scanner:Play()
-    end)
+    	local ATC;ATC = Scanner.Completed:Connect(function()
+        	Scanned:Fire()
+        	Scan.Rotation = 0
+        	Scanner:Play()
+    	end)
 	
 	local Results;Results=Scanned.Event:Connect(function()
 		for _,foundPlayer in pairs(scanPlayers()) do
