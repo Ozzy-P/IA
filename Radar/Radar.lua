@@ -6,7 +6,7 @@
 -- Planes: Blue
 
 
-local ScanTime = 2 -- Change time of each scan (disco mode?)
+local ScanTime = 2 -- Change time of each scan (disco mode?) [yes 0 works, no, it wont crash]
 local PlayerDetectionRadius = 75
 local ExecutiveDetectionRadius = 1500
 local PlaneDetectionRadius = 2000
