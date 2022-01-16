@@ -6,7 +6,7 @@
 -- Planes: Blue
 
 
-local ScanTime = 2 -- Change time of each scan (disco mode?)
+local ScanTime = 2 -- Change time of each scan (disco mode?) [yes 0 works, no, it wont crash]
 local PlayerDetectionRadius = 75
 local ExecutiveDetectionRadius = 1500
 local PlaneDetectionRadius = 2000
@@ -61,6 +61,7 @@ Scale.Scale = RadarSize
 --Properties:
 
 ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Name = "UwU"
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 ImageLabel.Parent = ScreenGui
@@ -314,13 +315,13 @@ local function NEGNSX()
 	
 	end
 	
-    Scanner:Play()
+   	Scanner:Play()
     
-    local ATC;ATC = Scanner.Completed:Connect(function()
-        Scanned:Fire()
-        Scan.Rotation = 0
-        Scanner:Play()
-    end)
+    	local ATC;ATC = Scanner.Completed:Connect(function()
+        	Scanned:Fire()
+        	Scan.Rotation = 0
+        	Scanner:Play()
+    	end)
 	
 	local Results;Results=Scanned.Event:Connect(function()
 		for _,foundPlayer in pairs(scanPlayers()) do
