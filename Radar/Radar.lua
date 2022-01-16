@@ -61,6 +61,7 @@ Scale.Scale = RadarSize
 --Properties:
 
 ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Name = "UwU"
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 ImageLabel.Parent = ScreenGui
