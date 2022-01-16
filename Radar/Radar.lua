@@ -248,12 +248,20 @@ local function NEGNSX()
 			end
 		end
 		for _,plane in pairs(workspace["Ins/InsClr"].Value:GetChildren()) do
-		    if plane:FindFirstChild("planeKit") then
-			    if plane.planeKit.PrimaryPart ~= nil then
+		    if plane:FindFirstChild("planeKit") and plane.planeKit.PrimaryPart ~= nil then
 			        local Magnitude = (workspace.Camera.CFrame.Position - plane.planeKit.PrimaryPart.CFrame.Position).magnitude
 				    if Magnitude <= PlaneDetectionRadius then
                         local PlaneInformation = {plane.Name,Magnitude,plane.planeKit.PrimaryPart.Position,plane.planeKit,true,{Magnitude,PlaneDetectionRadius}}
                         table.insert(Nearby, PlaneInformation)
+				    end
+            elseif plane:FindFirstChild("planeKit") and plane.planeKit.PrimaryPart == nil then
+                for _,part in pairs(plane:GetDescendants()) do
+                    if part.Name == "MainSeat" and part:IsA("Seat") then
+                        local Magnitude = (workspace.Camera.CFrame.Position - part.CFrame.Position).magnitude
+				        if Magnitude <= PlaneDetectionRadius then
+                            local PlaneInformation = {plane.Name,Magnitude,part.Position,plane.planeKit,true,{Magnitude,PlaneDetectionRadius}}
+                            table.insert(Nearby, PlaneInformation)
+				        end
                     end
                 end
             end
