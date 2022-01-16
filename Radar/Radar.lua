@@ -6,10 +6,10 @@
 -- Planes: Blue
 
 
-local ScanTime = 0 -- Change time of each scan (disco mode?) [yes 0 works, no, it wont crash]
+local ScanTime = 2 -- Change time of each scan (disco mode?) [yes 0 works, no, it wont crash]
 local PlayerDetectionRadius = 75
-local ExecutiveDetectionRadius = 1500
-local PlaneDetectionRadius = 2000
+local ExecutiveDetectionRadius = 2000
+local PlaneDetectionRadius = 4000
 local RadarSize = .75
 
 -- Gui to Lua
@@ -279,6 +279,13 @@ local function NEGNSX()
 		local Distance = CFrameTimesVector3(workspace.Camera.CFrame,target[3])
 		local Multiplier = 1
 		if target[6][1] > target[6][2] * .9 then Multiplier = .965 end
+		if target[6][1] > 75 and target[6][1] < 200 then
+			Multiplier = .3
+		elseif target[6][1] > 200 and target[6][1] < 350 then
+			Multiplier = .2
+		elseif target[6][1] > 350 and target[6][1] < 600 then
+			Multiplier = .05
+		end
 		local X_Distance = (Distance - Vector3.new()).X--.Unit.X
 		local Z_Distance = (Distance - Vector3.new()).Z--.Unit.Z
 		-- Center of Radar.
