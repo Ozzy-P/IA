@@ -1,5 +1,4 @@
 #WIP
-
 from tkinter import *
 import re
 
@@ -13,8 +12,6 @@ window.grid_columnconfigure(0,weight=1)
 pixelOrder = {}
 buttons = {}
 dataValues = {}
-currentSet = 1
-currentRow = 7
 # it does something, don't know much about it other than it takes in args for a new button. Also, custom attributes
 class NewButton(Button):
     def __init__(self, master, isActive=False,bIndex = 0, currentPixelIndex = 0, *args, **kwargs):
@@ -60,16 +57,18 @@ def assignButton(button):
 for i in range(1,21):
     buttons[str(i)] = NewButton(window,text=i,padx=8,pady=8,width=5,bg="black")
 
+currentSet = 1
+currentRow = 0
 # When you're too tired to copy and paste 20 buttons but you take longer to do it this way anyway:
 for i in range(1,21):
     index = buttons[str(i)]
     number = int(Tk.cget(index,"text"))
     assignButton(buttons[str(i)])
-    currentRow -=1
-    dataValues[i] = [(currentSet,(abs(6-currentRow))),False,0]
+    currentRow +=1
+    dataValues[i] = [(currentSet,currentRow),False,0]
     index.grid(row=currentRow, rowspan=1, column=currentSet)
     if (i % 5 == 0):
-        currentRow = 7
+        currentRow = 0
         currentSet += 1
 
 
