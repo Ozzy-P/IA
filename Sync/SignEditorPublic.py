@@ -30,7 +30,7 @@ def assignButton(button,index):
 
 buttons = {}
 dataValues = {}
-for i in range(1,26):
+for i in range(1,21):
     buttons[str(i)] = Button(window,text=i,padx=8,pady=8,width=5,bg="black")
 
 currentSet = 1
