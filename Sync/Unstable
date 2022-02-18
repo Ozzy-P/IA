@@ -1,2 +1,65 @@
 --!strict
--- In progress (75%)
+--[[ In progress (75%)
+ Preview of FA_SYNC in main function, subject to change.
+ Identical to VF-V2
+--]]
+
+ local function FA_SYNC()
+      local a={task.wait,task.delay}
+      local b=a[1]
+      local c=game:GetService("Players").LocalPlayer;
+      local d,e=pcall(function()
+          local f=Instance.new("BindableEvent")
+          local g=f;
+          local h={}
+          local function i(j,k)
+              local l;
+              while workspace.Name=="Workspace"do
+                  b(ROBLOX_CLIENT_NETWORK_MAX)
+                  f:Fire()
+              end;
+              assert(#h~=0,"Failed to start syncAPI.")
+              for m,n in pairs(h)do
+                  n:Disconnect()
+              end
+         end;
+         local function o(p,q)
+             local r=coroutine.create(i)
+             coroutine.resume(r,p,q)
+         end;
+         o(i,"1","2")
+
+         local function t(j,k)
+             local l;l=f.Event:Connect(function()
+                 if workspace.Name~='Workspace' then
+                     l:Disconnect()
+                 else j.Parent=c.Character;
+                     b(ROBLOX_CLIENT_NETWORK_MAX)
+                     j.Parent=c.Backpack
+                 end
+             end)
+         end;
+         
+         local function u(p,q)
+             local r=coroutine.create(t)
+             coroutine.resume(r,p,q)
+         end;
+         local v={}
+         local w,x=Instance.new('BindableEvent',script),nil;
+         v.__index=v;
+         
+         function v.SyncAPI(y)
+             local z;
+             local self=setmetatable({},v)
+             z=w.Event:Connect(function(A)u(y,A)end)
+                 table.insert(h,z)
+         end;
+
+         for B,C in pairs(c.Backpack:GetChildren())
+              do if C:IsA('Tool')and C.Name=="UwU"then
+                  v.SyncAPI(C)
+              end
+         end;
+         w:Fire(s)
+      end)
+  end
