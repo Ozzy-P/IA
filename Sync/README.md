@@ -1,3 +1,3 @@
 # V2
 
-Unreleased until changes are observed.
+Main version unreleased until changes are observed.
