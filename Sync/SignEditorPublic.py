@@ -1,45 +1,70 @@
-# WIP, using when completed to modify SYNC
+#WIP
 
 from tkinter import *
+import re
 
 # Create main window.
 window = Tk()
-window.title("Number panel")
+window.title("Sign Pixel Editor")
 window.geometry("400x400")
 window.resizable(False, False)
 window.grid_columnconfigure(0,weight=1)
 
+pixelOrder = {}
+buttons = {}
+dataValues = {}
+currentSet = 1
+currentRow = 7
+# it does something, don't know much about it other than it takes in args for a new button. Also, custom attributes
+class NewButton(Button):
+    def __init__(self, master, isActive=False,bIndex = 0, currentPixelIndex = 0, *args, **kwargs):
+        Button.__init__(self, master, *args, **kwargs)
+        self.master, self.isActive,self.bIndex,self.currentPixelIndex = master, isActive, bIndex,currentPixelIndex
+
+
 # First part of selection
-def changeArray(a,b,c):
-    selected = a
-    buttonNumber = b
-    data = c
-    if (dataValues[data][1] == False):
-        dataValues[data][1] = True
+def changeArray(selected):
+    if (selected.isActive == False):
+        dataValues[selected.bIndex][1] = True
+        newPixelIndex = len(pixelOrder)
+        pixelOrder[newPixelIndex] = [dataValues[selected.bIndex][0],selected]
+        selected.currentPixelIndex = newPixelIndex
+        selected.isActive = True
         selected.configure(bg="green")
+        #print("New data values:")
+        #print(pixelOrder)
     else:
-        dataValues[data][1] = False
+        dataValues[selected.bIndex][1] = False
+        selected.isActive = False
         selected.configure(bg="black")
+        markedIndex = selected.currentPixelIndex
+        pixelOrder.pop(markedIndex)
+        selected.currentPixelIndex = 0
+        for button in buttons:
+            shiftedButtonIndex = buttons[str(button)].currentPixelIndex
+            if shiftedButtonIndex > markedIndex:
+                buttons[str(button)].currentPixelIndex -= 1
+                pixelOrder[shiftedButtonIndex-1] = pixelOrder.pop(shiftedButtonIndex)
+        #print("New data values:")
+        #print(pixelOrder)
 
 def clearEntry():
     currentEntry.configure(text="")
 
-def assignButton(button,index):
+def assignButton(button):
     buttonValue = int(Tk.cget(button,"text"))
-    button.configure(command=lambda: changeArray(button,buttonValue,index),text="")
+    button.configure(command=lambda: changeArray(button),text="")
+    button.bIndex = buttonValue
 
-buttons = {}
-dataValues = {}
+# Default button schema best looking button
 for i in range(1,21):
-    buttons[str(i)] = Button(window,text=i,padx=8,pady=8,width=5,bg="black")
+    buttons[str(i)] = NewButton(window,text=i,padx=8,pady=8,width=5,bg="black")
 
-currentSet = 1
-currentRow = 7
 # When you're too tired to copy and paste 20 buttons but you take longer to do it this way anyway:
 for i in range(1,21):
     index = buttons[str(i)]
     number = int(Tk.cget(index,"text"))
-    assignButton(buttons[str(i)],i)
+    assignButton(buttons[str(i)])
     currentRow -=1
     dataValues[i] = [(currentSet,(abs(6-currentRow))),False,0]
     index.grid(row=currentRow, rowspan=1, column=currentSet)
@@ -47,7 +72,38 @@ for i in range(1,21):
         currentRow = 7
         currentSet += 1
 
+
+print("Initial data values:")
 print(dataValues)
+
+def removeData():
+    global dataValues
+    global pixelOrder
+    for button in buttons:
+        buttonValue = buttons[button]
+        dataValues[buttonValue.bIndex][1] = False
+        buttonValue.isActive = False
+        buttonValue.configure(bg="black")
+        buttonValue.currentPixelIndex = 0
+    pixelOrder = {}
+
+def printData():
+    assembledRDict = "{"
+    for value in pixelOrder:
+        if (not value >= len(pixelOrder)-1):
+            assembledRDict += re.sub("[() ]", "",  str(pixelOrder[value][0])) + ", "
+        else:
+            assembledRDict += re.sub("[() ]", "",  str(pixelOrder[value][0])) + "}"
+    print(assembledRDict)
+
+
+
+clearData = Button(window,text="Clear",padx=8,pady=8,width=5,bg="white",command=removeData)
+clearData.grid(row=11,rowspan=1,column=1)
+
+clearData = Button(window,text="Print Data",padx=8,pady=8,width=5,bg="white",command=printData)
+clearData.grid(row=12,rowspan=1,column=1)
+
 
 currentEntry = Label(window,text = "",font=("Arial","15"),padx=45)
 currentEntry.grid(row=0, rowspan=1, column=5)
