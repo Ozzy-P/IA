@@ -1,3 +1,5 @@
+# WIP, using when completed to modify SYNC
+
 from tkinter import *
 
 # Create main window.
