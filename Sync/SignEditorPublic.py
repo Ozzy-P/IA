@@ -1,3 +1,6 @@
+# File to change current table values in Steins;Gate
+# Printed data has to be manually exported onto corresponding table value
+
 from tkinter import *
 import re
 
@@ -18,7 +21,8 @@ class NewButton(Button):
         self.master, self.isActive,self.bIndex,self.currentPixelIndex = master, isActive, bIndex,currentPixelIndex
 
 
-# First part of selection
+# Change array (its actually an array this time)
+# Adds or removes corresponding vector and its button depending on state of the button
 def changeArray(selected):
     if (selected.isActive == False):
         newPixelIndex = len(pixelOrder)
@@ -34,16 +38,17 @@ def changeArray(selected):
         markedIndex = selected.currentPixelIndex
         pixelOrder.pop(markedIndex)
         selected.currentPixelIndex = 0
-        print(markedIndex+1,len(pixelOrder)+1)
         for x in range(markedIndex+1,len(pixelOrder)+1):
             pixelOrder[x-1][1].currentPixelIndex -= 1
             #print(pixelOrder[x-1][1].currentPixelIndex, "deleted")
         #print("New data values:")
         #print(pixelOrder)
 
+# WIP
 def clearEntry():
     currentEntry.configure(text="")
 
+# Assign button to index in ascending order (starting from 0)
 def assignButton(button):
     buttonValue = int(Tk.cget(button,"text"))
     button.configure(command=lambda: changeArray(button),text="")
