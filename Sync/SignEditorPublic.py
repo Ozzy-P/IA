@@ -1,4 +1,3 @@
-#WIP
 from tkinter import *
 import re
 
@@ -9,9 +8,9 @@ window.geometry("400x400")
 window.resizable(False, False)
 window.grid_columnconfigure(0,weight=1)
 
-pixelOrder = {}
+pixelOrder = []
 buttons = {}
-dataValues = {}
+dataValues = []
 # it does something, don't know much about it other than it takes in args for a new button. Also, custom attributes
 class NewButton(Button):
     def __init__(self, master, isActive=False,bIndex = 0, currentPixelIndex = 0, *args, **kwargs):
@@ -22,26 +21,23 @@ class NewButton(Button):
 # First part of selection
 def changeArray(selected):
     if (selected.isActive == False):
-        dataValues[selected.bIndex][1] = True
         newPixelIndex = len(pixelOrder)
-        pixelOrder[newPixelIndex] = [dataValues[selected.bIndex][0],selected]
+        pixelOrder.append([dataValues[selected.bIndex][0],selected])
         selected.currentPixelIndex = newPixelIndex
         selected.isActive = True
         selected.configure(bg="green")
         #print("New data values:")
         #print(pixelOrder)
     else:
-        dataValues[selected.bIndex][1] = False
         selected.isActive = False
         selected.configure(bg="black")
         markedIndex = selected.currentPixelIndex
         pixelOrder.pop(markedIndex)
         selected.currentPixelIndex = 0
-        for button in buttons:
-            shiftedButtonIndex = buttons[str(button)].currentPixelIndex
-            if shiftedButtonIndex > markedIndex:
-                buttons[str(button)].currentPixelIndex -= 1
-                pixelOrder[shiftedButtonIndex-1] = pixelOrder.pop(shiftedButtonIndex)
+        print(markedIndex+1,len(pixelOrder)+1)
+        for x in range(markedIndex+1,len(pixelOrder)+1):
+            pixelOrder[x-1][1].currentPixelIndex -= 1
+            #print(pixelOrder[x-1][1].currentPixelIndex, "deleted")
         #print("New data values:")
         #print(pixelOrder)
 
@@ -51,7 +47,7 @@ def clearEntry():
 def assignButton(button):
     buttonValue = int(Tk.cget(button,"text"))
     button.configure(command=lambda: changeArray(button),text="")
-    button.bIndex = buttonValue
+    button.bIndex = buttonValue - 1
 
 # Default button schema best looking button
 for i in range(1,21):
@@ -65,34 +61,37 @@ for i in range(1,21):
     number = int(Tk.cget(index,"text"))
     assignButton(buttons[str(i)])
     currentRow +=1
-    dataValues[i] = [(currentSet,currentRow),False,0]
+    dataValues.append([(currentSet,currentRow),buttons[str(i)],0])
     index.grid(row=currentRow, rowspan=1, column=currentSet)
     if (i % 5 == 0):
         currentRow = 0
         currentSet += 1
 
 
-print("Initial data values:")
-print(dataValues)
+#print("Initial data values:")
+#print(dataValues)
 
 def removeData():
     global dataValues
     global pixelOrder
     for button in buttons:
         buttonValue = buttons[button]
-        dataValues[buttonValue.bIndex][1] = False
+        dataValues[buttonValue.bIndex-1][1] = buttonValue
         buttonValue.isActive = False
         buttonValue.configure(bg="black")
         buttonValue.currentPixelIndex = 0
-    pixelOrder = {}
+    pixelOrder = []
 
 def printData():
     assembledRDict = "{"
-    for value in pixelOrder:
-        if (not value >= len(pixelOrder)-1):
-            assembledRDict += re.sub("[() ]", "",  str(pixelOrder[value][0])) + ", "
+    if len(pixelOrder) == 1:
+        print("{" + re.sub("[() ]", "",  str(pixelOrder[0][0])) + "}")
+        return
+    for value in range(1,len(pixelOrder)+1):
+        if (not value >= len(pixelOrder)):
+            assembledRDict += re.sub("[() ]", "",  str(pixelOrder[value-1][0])) + ", "
         else:
-            assembledRDict += re.sub("[() ]", "",  str(pixelOrder[value][0])) + "}"
+            assembledRDict += re.sub("[() ]", "",  str(pixelOrder[value-1][0])) + "}"
     print(assembledRDict)
 
 
