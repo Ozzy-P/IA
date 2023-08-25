@@ -15,6 +15,7 @@
 
 local ScanRange = 600
 local ScanTime = 2
+local ScalingEnabled = false
 
 local RADar = Instance.new("ScreenGui")
 local Main = Instance.new("CanvasGroup")
@@ -185,13 +186,15 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		-- Restrict out of bounds area
 		local Distance = CFrameTimesVector3(workspace.Camera.CFrame,target[3])
 		local Multiplier = 1
-		if target[6][1] > target[6][2] * .9 then Multiplier = .965 end
-		if target[6][1] > 75 and target[6][1] < 200 then
-			Multiplier = .3
-		elseif target[6][1] > 200 and target[6][1] < 350 then
-			Multiplier = .2
-		elseif target[6][1] > 350 and target[6][1] < 600 then
-			Multiplier = .05
+		if ScalingEnabled then
+			if target[6][1] > target[6][2] * .9 then Multiplier = .965 end
+			if target[6][1] > 75 and target[6][1] < 200 then
+				Multiplier = .3
+			elseif target[6][1] > 200 and target[6][1] < 350 then
+				Multiplier = .2
+			elseif target[6][1] > 350 and target[6][1] < 600 then
+				Multiplier = .05
+			end
 		end
 		local X_Distance = (Distance - Vector3.new()).X--.Unit.X
 		local Z_Distance = (Distance - Vector3.new()).Z--.Unit.Z
