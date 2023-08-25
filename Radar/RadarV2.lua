@@ -2,6 +2,8 @@
 * [MARKED AS DONE] Delegate a scheduler based on current frame rotation -> Get objects currently at that angle from the camera (P: Ignore rescans of same object when camera is reangled.)
 * [Might make RADar UI too clunky, marked as N.O.] Move blips on radar relative to camera movement.
 * [MARKED AS PENDING] Fix scaling [among other stuff from V1]
+* Fix connection leak..
+* Retry tracker on new player join (if it ever connected).
 --]]
 
 local ScanRange = 600
@@ -133,8 +135,9 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		end
 	end
 	
-	Players.PlayerAdded:Connect(function(player)
-		player.CharacterAdded:Connect(function(character)
+	local PlayerAdded,LocalPlayerCharacterAdded; PlayerAdded = Players.PlayerAdded:Connect(function(player)
+		local TMP_CHAR; TMP_CHAR = player.CharacterAdded:Connect(function(character)
+			if not PlayerAdded.Connected then TMP_CHAR:Disconnect() return end
 			character:WaitForChild("HumanoidRootPart",5)
 			if not character:FindFirstChild("HumanoidRootPart") then return end
 			table.insert(targetInstances,character.HumanoidRootPart)
@@ -146,8 +149,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			Target = LocalPlayer.Character.HumanoidRootPart
 		end
 
-
-		LocalPlayer.CharacterAdded:Connect(function(character)
+		LocalPlayerCharacterAdded = LocalPlayer.CharacterAdded:Connect(function(character)
 			character:WaitForChild("HumanoidRootPart",5)
 			if not character:FindFirstChild("HumanoidRootPart") then return end
 			Target = character.HumanoidRootPart
@@ -305,6 +307,8 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	
 	local function unbindScanner()
 		ContextActionService:UnbindAction("DisableRadar")
+		LocalPlayerCharacterAdded:Disconnect()
+		PlayerAdded:Disconnect()
 		radarScan:Cancel()
 		RADar:Destroy()
 	end
@@ -321,6 +325,5 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	radarScan:Play()
 	ContextActionService:BindAction("DisableRadar", unbindScanner, true, Enum.KeyCode.P)
 	dragify(Main)
-
 end
 coroutine.wrap(LKJE_fake_script)()
