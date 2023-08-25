@@ -14,8 +14,9 @@
 -- Instances:
 
 local ScanRange = 600
-local ScanTime = 2
+local ScanTime = 1 + 1/3
 local ScalingEnabled = false
+local ScanMode = "Character" -- Scanning Relative to Object: Camera,Character
 
 local RADar = Instance.new("ScreenGui")
 local Main = Instance.new("CanvasGroup")
@@ -45,7 +46,7 @@ Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Main.BorderSizePixel = 0
 Main.Position = UDim2.new(0.0269986596, 0, 0.25, 0)
-Main.Size = UDim2.new(0.5, 0, 0.5, 0)
+Main.Size = UDim2.new(0.35, 0, 0.35, 0)
 
 UICorner.CornerRadius = UDim.new(1, 0)
 UICorner.Parent = Main
@@ -133,6 +134,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	local Camera = workspace:WaitForChild("Camera")
 	local targetInstances = {}
 	local activeSpotted = {}
+	local Target = nil
 	
 	for _,Player in pairs(Players:GetChildren()) do
 		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player ~= LocalPlayer then
@@ -147,6 +149,19 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			table.insert(targetInstances,character.HumanoidRootPart)
 		end)
 	end)
+	
+	if ScanMode == "Character" then
+		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			Target = LocalPlayer.Character.HumanoidRootPart
+		end
+
+
+		LocalPlayer.CharacterAdded:Connect(function(character)
+			character:WaitForChild("HumanoidRootPart",5)
+			if not character:FindFirstChild("HumanoidRootPart") then return end
+			Target = character.HumanoidRootPart
+		end)
+	end
 	
 	local TweeningInfo = TweenInfo.new(ScanTime,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,-1,false)
 	local ScannerInstance = Delin
@@ -181,12 +196,52 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		return Vector3.new(HowFarRight,HowFarUp,HowFarBack)
 	end
 	
+	local function dragify(Frame)
+		local dragToggle = nil
+		local dragSpeed = .25
+		local dragInput = nil
+		local dragStart = nil
+		local dragPos = nil
+		local startPos = nil
+
+		local function updateInput(input)
+			local Delta = input.Position - dragStart
+			local Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
+			game:GetService("TweenService"):Create(Frame, TweenInfo.new(.25), {Position = Position}):Play()
+		end
+
+		local IB = Frame.InputBegan:Connect(function(input)
+			if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+				dragToggle = true
+				dragStart = input.Position
+				startPos = Frame.Position
+				input.Changed:Connect(function()
+					if (input.UserInputState == Enum.UserInputState.End) then
+						dragToggle = false
+					end
+				end)
+			end
+		end)
+
+		local IC = Frame.InputChanged:Connect(function(input)
+			if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				dragInput = input
+			end
+		end)
+
+		local UIC = game:GetService("UserInputService").InputChanged:Connect(function(input)
+			if (input == dragInput and dragToggle) then
+				updateInput(input)
+			end
+		end)
+	end
+
 	local Enemy = ScannerInstance.Parent.Enemy
 	local function createBlip(target)
 		local Blip = Enemy:Clone()
 	
 		-- Restrict out of bounds area
-		local Distance = CFrameTimesVector3(workspace.Camera.CFrame,target[3])
+		local Distance = CFrameTimesVector3(Target.CFrame,target[3])
 		local Multiplier = 1
 		if ScalingEnabled then
 			if target[6][1] > target[6][2] * .9 then Multiplier = .965 end
@@ -251,7 +306,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			if not Player then continue end
 			if not activeSpotted[Player.Name] then
 				activeSpotted[Player.Name] = true
-				createBlip({Player.Name,(Camera.CFrame.Position - Part.Position).Magnitude,Player.Character.HumanoidRootPart.Position,Player.Character,false,{(Camera.CFrame.Position - Part.Position).Magnitude,ScanRange}},Player.Name)
+				createBlip({Player.Name,(Target.CFrame.Position - Part.Position).Magnitude,Player.Character.HumanoidRootPart.Position,Player.Character,false,{(Target.CFrame.Position - Part.Position).Magnitude,ScanRange}},Player.Name)
 			end
 		end
 	end
@@ -264,7 +319,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	
 	
 	ScannerInstance:GetPropertyChangedSignal("Rotation"):Connect(function()
-		local targetCF = (Camera.CFrame) * CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0)
+		local targetCF = (Target.CFrame) * CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0)
 		local playerResults = workspace:GetPartBoundsInBox(targetCF + targetCF.LookVector * ScanRange/2, Vector3.new(5,ScanRange,ScanRange), overlap)
 		if #playerResults > 0 then
 			checkPlayerTargets(playerResults)
@@ -273,5 +328,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	
 	radarScan:Play()
 	ContextActionService:BindAction("DisableRadar", unbindScanner, true, Enum.KeyCode.P)
+	dragify(Main)
+
 end
 coroutine.wrap(LKJE_fake_script)()
