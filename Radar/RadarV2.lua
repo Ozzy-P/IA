@@ -135,14 +135,16 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	local activeSpotted = {}
 	
 	for _,Player in pairs(Players:GetChildren()) do
-		if Player.Character and Player ~= LocalPlayer then
-			table.insert(targetInstances,Player.Character)
+		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player ~= LocalPlayer then
+			table.insert(targetInstances,Player.Character.HumanoidRootPart)
 		end
 	end
 	
 	Players.PlayerAdded:Connect(function(player)
 		player.CharacterAdded:Connect(function(character)
-			table.insert(targetInstances,character)
+			character:WaitForChild("HumanoidRootPart",5)
+			if not character:FindFirstChild("HumanoidRootPart") then return end
+			table.insert(targetInstances,character.HumanoidRootPart)
 		end)
 	end)
 	
