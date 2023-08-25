@@ -32,6 +32,7 @@ local UICorner_5 = Instance.new("UICorner")
 RADar.Name = "RADar"
 RADar.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 RADar.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+RADar.ResetOnSpawn = false
 
 Main.Name = "Main"
 Main.Parent = RADar
@@ -135,25 +136,33 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		end
 	end
 	
-	local PlayerAdded,LocalPlayerCharacterAdded; PlayerAdded = Players.PlayerAdded:Connect(function(player)
+	local PlayerAdded,LocalPlayerCharacterAdded = nil,nil; 
+	PlayerAdded = Players.PlayerAdded:Connect(function(player)
 		local TMP_CHAR; TMP_CHAR = player.CharacterAdded:Connect(function(character)
-			if not PlayerAdded.Connected then TMP_CHAR:Disconnect() return end
-			character:WaitForChild("HumanoidRootPart",5)
+			if not PlayerAdded.Connected then warn("Player requested disconnect from service.") 
+				TMP_CHAR:Disconnect() 
+				return 
+			end
+			character:WaitForChild("HumanoidRootPart")
 			if not character:FindFirstChild("HumanoidRootPart") then return end
 			table.insert(targetInstances,character.HumanoidRootPart)
 		end)
 	end)
 	
 	if ScanMode == "Character" then
-		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		if LocalPlayer.Character and LocalPlayer.Character:WaitForChild("HumanoidRootPart") then
 			Target = LocalPlayer.Character.HumanoidRootPart
+		else
+			LocalPlayer.CharacterAdded:Wait()
+			Target = LocalPlayer.Character:WaitForChild("HumanoidRootPart")
 		end
 
 		LocalPlayerCharacterAdded = LocalPlayer.CharacterAdded:Connect(function(character)
-			character:WaitForChild("HumanoidRootPart",5)
+			character:WaitForChild("HumanoidRootPart")
 			if not character:FindFirstChild("HumanoidRootPart") then return end
 			Target = character.HumanoidRootPart
 		end)
+
 	elseif ScanMode == "Camera" then
 		Target = Camera
 	end
@@ -307,16 +316,20 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	
 	local function unbindScanner()
 		ContextActionService:UnbindAction("DisableRadar")
+		ContextActionService:UnbindAction("DBG")
 		LocalPlayerCharacterAdded:Disconnect()
 		PlayerAdded:Disconnect()
 		radarScan:Cancel()
 		RADar:Destroy()
 	end
 	
+	local function DBG()
+		print(#targetInstances, PlayerAdded and PlayerAdded.Connected, #activeSpotted)
+	end
+	
 	
 	ScannerInstance:GetPropertyChangedSignal("Rotation"):Connect(function()
-		local targetCF = (Target.CFrame) * CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0)
-		local playerResults = workspace:GetPartBoundsInBox(targetCF + targetCF.LookVector * ScanRange/2, Vector3.new(5,ScanRange,ScanRange), overlap)
+		local playerResults = workspace:GetPartBoundsInBox(((Target.CFrame)*CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0))+((Target.CFrame)*CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0)).LookVector * ScanRange/2, Vector3.new(5,ScanRange,ScanRange), overlap)
 		if #playerResults > 0 then
 			checkPlayerTargets(playerResults)
 		end
@@ -324,6 +337,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	
 	radarScan:Play()
 	ContextActionService:BindAction("DisableRadar", unbindScanner, true, Enum.KeyCode.P)
+	ContextActionService:BindAction("DBG", DBG, false, Enum.KeyCode.M)
 	dragify(Main)
 end
 coroutine.wrap(LKJE_fake_script)()
