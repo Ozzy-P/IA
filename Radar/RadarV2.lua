@@ -1,17 +1,8 @@
--- Placeholder file, mostly an idea board at the moment.
 --[[ TODO: 
 * [MARKED AS DONE] Delegate a scheduler based on current frame rotation -> Get objects currently at that angle from the camera (P: Ignore rescans of same object when camera is reangled.)
-* Move blips on radar relative to camera movement.
-* Fix scaling [among other stuff from V1]
+* [Might make RADar UI too clunky, marked as N.O.] Move blips on radar relative to camera movement.
+* [MARKED AS PENDING] Fix scaling [among other stuff from V1]
 --]]
-
--- Below is an untested full version of the aforementioned new version (v3 when?).
-
-
--- Gui to Lua
--- Version: 3.2
-
--- Instances:
 
 local ScanRange = 600
 local ScanTime = 1 + 1/3
@@ -161,6 +152,8 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			if not character:FindFirstChild("HumanoidRootPart") then return end
 			Target = character.HumanoidRootPart
 		end)
+	elseif ScanMode == "Camera" then
+		Target = Camera
 	end
 	
 	local TweeningInfo = TweenInfo.new(ScanTime,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,-1,false)
@@ -296,7 +289,6 @@ local function LKJE_fake_script() -- Delin.LocalScript
 				activeSpotted[target[1]] = nil
 			end)
 		end)
-	
 	end
 	
 	
