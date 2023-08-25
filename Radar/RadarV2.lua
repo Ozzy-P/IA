@@ -10,9 +10,10 @@
 
 -- Gui to Lua
 -- Version: 3.2
+
 -- Instances:
 
-local ScanRange = 200
+local ScanRange = 600
 local ScanTime = 2
 
 local RADar = Instance.new("ScreenGui")
@@ -124,6 +125,7 @@ UICorner_5.Parent = Enemy
 
 local function LKJE_fake_script() -- Delin.LocalScript 
 	local TweenService = game:GetService("TweenService")
+	local ContextActionService = game:GetService("ContextActionService")
 	local Debris = game:GetService("Debris")
 	local Players = game:GetService("Players")
 	local LocalPlayer = Players.LocalPlayer
@@ -132,7 +134,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	local activeSpotted = {}
 	
 	for _,Player in pairs(Players:GetChildren()) do
-		if Player.Character then
+		if Player.Character and Player ~= LocalPlayer then
 			table.insert(targetInstances,Player.Character)
 		end
 	end
@@ -241,11 +243,18 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	local function checkPlayerTargets(results)
 		for _,Part:BasePart in pairs(results) do
 			local Player = Players:GetPlayerFromCharacter(Part:FindFirstAncestorWhichIsA("Model"))
+			if not Player then continue end
 			if not activeSpotted[Player.Name] then
 				activeSpotted[Player.Name] = true
 				createBlip({Player.Name,(Camera.CFrame.Position - Part.Position).Magnitude,Player.Character.HumanoidRootPart.Position,Player.Character,false,{(Camera.CFrame.Position - Part.Position).Magnitude,ScanRange}},Player.Name)
 			end
 		end
+	end
+	
+	local function unbindScanner()
+		ContextActionService:UnbindAction("DisableRadar")
+		radarScan:Cancel()
+		RADar:Destroy()
 	end
 	
 	
@@ -258,5 +267,6 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	end)
 	
 	radarScan:Play()
+	ContextActionService:BindAction("DisableRadar", unbindScanner, true, Enum.KeyCode.P)
 end
 coroutine.wrap(LKJE_fake_script)()
