@@ -138,8 +138,15 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	
 	local PlayerAdded,LocalPlayerCharacterAdded = nil,nil; 
 	PlayerAdded = Players.PlayerAdded:Connect(function(player)
+		if player.Character and player.Character:WaitForChild("HumanoidRootPart") then
+			table.insert(targetInstances,player.Character.HumanoidRootPart)
+		else
+			player.CharacterAdded:Wait()
+			player.Character:WaitForChild("HumanoidRootPart")
+			table.insert(targetInstances,player.Character.HumanoidRootPart)
+		end
 		local TMP_CHAR; TMP_CHAR = player.CharacterAdded:Connect(function(character)
-			if not PlayerAdded.Connected then warn("Player requested disconnect from service.") 
+			if not PlayerAdded.Connected then
 				TMP_CHAR:Disconnect() 
 				return 
 			end
