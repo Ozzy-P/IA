@@ -137,22 +137,19 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	end
 	
 	local PlayerAdded,LocalPlayerCharacterAdded = nil,nil; 
-	PlayerAdded = Players.PlayerAdded:Connect(function(player)
-		if player.Character and player.Character:WaitForChild("HumanoidRootPart") then
-			table.insert(targetInstances,player.Character.HumanoidRootPart)
-		else
+	PlayerAdded = Players.PlayerAdded:Connect(function(player:Player)
+		local targetCharacter = player.Character::Model
+		if not targetCharacter then
 			player.CharacterAdded:Wait()
-			player.Character:WaitForChild("HumanoidRootPart")
-			table.insert(targetInstances,player.Character.HumanoidRootPart)
 		end
+		table.insert(targetInstances,targetCharacter:WaitForChild("HumanoidRootPart"))
+
 		local TMP_CHAR; TMP_CHAR = player.CharacterAdded:Connect(function(character)
-			if not PlayerAdded.Connected then
+			if not PlayerAdded.Connected then warn("Player requested disconnect from service.") 
 				TMP_CHAR:Disconnect() 
 				return 
 			end
-			character:WaitForChild("HumanoidRootPart")
-			if not character:FindFirstChild("HumanoidRootPart") then return end
-			table.insert(targetInstances,character.HumanoidRootPart)
+			table.insert(targetInstances,character:WaitForChild("HumanoidRootPart"))
 		end)
 	end)
 	
@@ -175,7 +172,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	end
 	
 	local TweeningInfo = TweenInfo.new(ScanTime,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,-1,false)
-	local ScannerInstance = Delin
+	local ScannerInstance = Delin::Frame
 	local radarScan = TweenService:Create(ScannerInstance,TweeningInfo,{Rotation = 360})
 	local overlap = OverlapParams.new()
 	overlap.FilterType = Enum.RaycastFilterType.Include
@@ -196,7 +193,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	-- CFrame:inverse() * Vector3
 	local function CFrameTimesVector3(CFrame,Vector)
 		local px,py,pz,xx,yx,zx,xy,yy,zy,xz,yz,zz=CFrame:components()
-		local vx,vy,vz=Vector.x,Vector.y,Vector.z
+		local vx:number,vy:number,vz:number=Vector.x,Vector.y,Vector.z
 	
 		local rx,ry,rz=vx-px,vy-py,vz-pz--r for Relative
 	
@@ -213,9 +210,9 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		local dragInput = nil
 		local dragStart = nil
 		local dragPos = nil
-		local startPos = nil
+		local startPos = UDim2.new()
 
-		local function updateInput(input)
+		local function updateInput(input:InputObject)
 			local Delta = input.Position - dragStart
 			local Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
 			game:GetService("TweenService"):Create(Frame, TweenInfo.new(.25), {Position = Position}):Play()
@@ -246,11 +243,14 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			end
 		end)
 	end
-
-	local Enemy = ScannerInstance.Parent.Enemy
-	local function createBlip(target)
-		local Blip = Enemy:Clone()
 	
+	local function extendBlip(targetBlip:{})
+		
+	end
+	
+	local function createBlip(target:{})
+		local Blip = Enemy:Clone()
+		
 		-- Restrict out of bounds area
 		local Distance = CFrameTimesVector3(Target.CFrame,target[3])
 		local Multiplier = 1
@@ -300,6 +300,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		FadeIn:Play()
 	
 		local FadeOut;FadeOut = FadeIn.Completed:Connect(function()
+			if FadeIn.PlaybackState == Enum.PlaybackState.Cancelled then return end
 			FadeOut:Disconnect()
 			FadeBlip:Play()
 			Debris:AddItem(Blip,ScanTime/2)
@@ -316,7 +317,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			if not Player then continue end
 			if not activeSpotted[Player.Name] then
 				activeSpotted[Player.Name] = true
-				createBlip({Player.Name,(Target.CFrame.Position - Part.Position).Magnitude,Player.Character.HumanoidRootPart.Position,Player.Character,false,{(Target.CFrame.Position - Part.Position).Magnitude,ScanRange}},Player.Name)
+				createBlip({Player.Name,(Target.CFrame.Position - Part.Position).Magnitude,Player.Character.HumanoidRootPart.Position,Player.Character,false,{(Target.CFrame.Position - Part.Position).Magnitude,ScanRange}})
 			end
 		end
 	end
