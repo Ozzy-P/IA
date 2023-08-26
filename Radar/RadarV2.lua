@@ -1,9 +1,9 @@
 --[[ TODO: 
 * [MARKED AS DONE] Delegate a scheduler based on current frame rotation -> Get objects currently at that angle from the camera (P: Ignore rescans of same object when camera is reangled.)
-* [Might make RADar UI too clunky, marked as N.O.] Move blips on radar relative to camera movement.
-* [MARKED AS PENDING] Fix scaling [among other stuff from V1]
-* Fix connection leak..
-* Retry tracker on new player join (if it ever connected).
+* [Marked as non-issue] Make relative scaling to target instance scanner based on distance.
+* [Marked as pending] Move blips on radar relative to camera movement.
+* [Marked as pending] Fix connection leak..
+* [Marked as -] Retry instance add.
 --]]
 
 local ScanRange = 600
