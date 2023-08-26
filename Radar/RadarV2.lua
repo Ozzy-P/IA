@@ -1,12 +1,12 @@
 --[[ TODO: 
-* [MARKED AS DONE] Delegate a scheduler based on current frame rotation -> Get objects currently at that angle from the camera (P: Ignore rescans of same object when camera is reangled.)
-* [Marked as non-issue] Make relative scaling to target instance scanner based on distance.
-* [Marked as pending] Move blips on radar relative to camera movement.
+* [Marked as done Delegate a scheduler based on current frame rotation -> Get objects currently at that angle from the camera (P: Ignore rescans of same object when camera is reangled.)
+* [Marked as done] Make relative scaling to target instance scanner based on distance.
+* [Marked as done] Move blips on radar relative to camera movement.
 * [Marked as pending] Fix connection leak..
-* [Marked as -] Retry instance add.
+* [Marked as pending] Retry instance add.
 --]]
 
-local ScanRange = 600
+local ScanRange = 50
 local ScanTime = 1 + 1/3
 local ScalingEnabled = false
 local ScanMode = "Character" -- Scanning Relative to Object: Camera,Character
@@ -120,12 +120,13 @@ UICorner_5.Parent = Enemy
 -- Scripts:
 
 local function LKJE_fake_script() -- Delin.LocalScript 
-	local TweenService = game:GetService("TweenService")
 	local ContextActionService = game:GetService("ContextActionService")
-	local Debris = game:GetService("Debris")
-	local Players = game:GetService("Players")
-	local LocalPlayer = Players.LocalPlayer
+	local TweenService = game:GetService("TweenService")
+	local RunService = game:GetService("RunService")
 	local Camera = workspace:WaitForChild("Camera")
+	local Players = game:GetService("Players")
+	local Debris = game:GetService("Debris")
+	local LocalPlayer = Players.LocalPlayer
 	local targetInstances = {}
 	local activeSpotted = {}
 	local Target = nil
@@ -140,12 +141,12 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	PlayerAdded = Players.PlayerAdded:Connect(function(player:Player)
 		local targetCharacter = player.Character::Model
 		if not targetCharacter then
-			player.CharacterAdded:Wait()
+			targetCharacter = player.CharacterAdded:Wait()
 		end
 		table.insert(targetInstances,targetCharacter:WaitForChild("HumanoidRootPart"))
 
 		local TMP_CHAR; TMP_CHAR = player.CharacterAdded:Connect(function(character)
-			if not PlayerAdded.Connected then warn("Player requested disconnect from service.") 
+			if not PlayerAdded.Connected then
 				TMP_CHAR:Disconnect() 
 				return 
 			end
@@ -193,7 +194,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	-- CFrame:inverse() * Vector3
 	local function CFrameTimesVector3(CFrame,Vector)
 		local px,py,pz,xx,yx,zx,xy,yy,zy,xz,yz,zz=CFrame:components()
-		local vx:number,vy:number,vz:number=Vector.x,Vector.y,Vector.z
+		local vx:number,vy:number,vz:number=Vector.X,Vector.Y,Vector.Z
 	
 		local rx,ry,rz=vx-px,vy-py,vz-pz--r for Relative
 	
@@ -244,17 +245,38 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		end)
 	end
 	
-	local function extendBlip(targetBlip:{})
+	local activeTrackers = {}
+	local activeBlips = {}
+	
+	local function extendBlip(targetBlip:targetTable)
 		
 	end
 	
-	local function createBlip(target:{})
+	local function calcNewDist(targetPos)
+		local Distance = CFrameTimesVector3(Target.CFrame,targetPos)
+		local X_Distance = (Distance - Vector3.new()).X--.Unit.X
+		local Z_Distance = (Distance - Vector3.new()).Z--.Unit.Z
+		-- Center of Radar.
+		local OwO = .0075
+		return .485 + ( X_Distance * OwO * 1 ),.475 + ( Z_Distance * OwO * 1 )
+	end
+	
+	
+	type targetTable = {Name:string,
+		Magnitude:any,
+		LocalPosition:Vector3,
+		TargetModel:Model,
+		DRG:any,
+		TargetPart:BasePart
+	}
+	
+	local function createBlip(target:targetTable)
+		
 		local Blip = Enemy:Clone()
 		
 		-- Restrict out of bounds area
-		local Distance = CFrameTimesVector3(Target.CFrame,target[3])
 		local Multiplier = 1
-		if ScalingEnabled then
+		--[[if ScalingEnabled then
 			if target[6][1] > target[6][2] * .9 then Multiplier = .965 end
 			if target[6][1] > 75 and target[6][1] < 200 then
 				Multiplier = .3
@@ -263,26 +285,21 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			elseif target[6][1] > 350 and target[6][1] < 600 then
 				Multiplier = .05
 			end
-		end
-		local X_Distance = (Distance - Vector3.new()).X--.Unit.X
-		local Z_Distance = (Distance - Vector3.new()).Z--.Unit.Z
-		-- Center of Radar.
-		local RadarX,RadarZ = .485,.475
-		local OwO = .0075
-		RadarX = RadarX + ( X_Distance * OwO * Multiplier )
-		RadarZ = RadarZ + ( Z_Distance * OwO * Multiplier )
-	
+		end--]]
+		
+		local RadarX, RadarZ = calcNewDist(target.TargetPart.Position)
 		Blip.Position = UDim2.new(RadarX,0,RadarZ,0)
 		Blip.Parent = Delin.Parent
-		local info = TweenInfo.new(ScanTime / 2,Enum.EasingStyle.Quad,Enum.EasingDirection.In,0,false,0)
-		local infoFast = TweenInfo.new(ScanTime / 4,Enum.EasingStyle.Quad,Enum.EasingDirection.In,0,false,0)
+		local info = TweenInfo.new(ScanTime / 1.3,Enum.EasingStyle.Linear,Enum.EasingDirection.In,0,false,0)
+		local infoFast = TweenInfo.new(ScanTime / 7,Enum.EasingStyle.Linear,Enum.EasingDirection.In,0,false,0)
 		local Goals = {Fade={BackgroundTransparency = 1},FadeIn = {BackgroundTransparency = .125}}
-		if target[5] == true then
+		
+		if target.DRG== true then
 			Blip.BackgroundColor3 = Color3.new(0,0,255)
 			Blip.Size = UDim2.new(0.1, 0, 0.1, 0)
 			Blip.ZIndex = 2
 			Goals.FadeIn.BackgroundTransparency = 0
-		elseif target[5] == "RUN." then
+		elseif target.DRG == "RUN." then
 			Blip.BackgroundColor3 = Color3.new(255,0,0)
 			Blip.Size = UDim2.new(0.08, 0, 0.08, 0)
 			Blip.ZIndex = 2
@@ -291,25 +308,59 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			Blip.BackgroundColor3 = Color3.fromRGB(0,170,250)
 			Blip.Size = UDim2.new(0.04, 0, 0.04, 0)
 			Blip.ZIndex = 2
-			Goals.FadeIn.BackgroundTransparency = 0
+			Goals.FadeIn.BackgroundTransparency = 0.125
 		end
 	
-		local FadeIn  = TweenService:Create(Blip, infoFast, Goals.FadeIn)
-		local FadeBlip  = TweenService:Create(Blip, info, Goals.Fade)
+		local ShowBlip  = TweenService:Create(Blip, infoFast, Goals.FadeIn)
+		local HideBlip  = TweenService:Create(Blip, info, Goals.Fade)
 	
-		FadeIn:Play()
+		ShowBlip:Play()
+		
+		local posChanged
+		posChanged = RunService.Heartbeat:Connect(function()
+			if target.TargetModel.Parent ~= workspace then
+				posChanged:Disconnect()
+				Blip:Destroy()
+				activeSpotted[target.Name] = nil
+				return
+			end
+			local newX, newZ = calcNewDist(target.TargetPart.Position)
+			Blip.Position = UDim2.new(newX,0,newZ,0)
+		end)
+		
+		table.insert(activeTrackers, posChanged)
 	
-		local FadeOut;FadeOut = FadeIn.Completed:Connect(function()
-			if FadeIn.PlaybackState == Enum.PlaybackState.Cancelled then return end
-			FadeOut:Disconnect()
-			FadeBlip:Play()
-			Debris:AddItem(Blip,ScanTime/2)
-			task.delay(ScanTime/2,function()
-				activeSpotted[target[1]] = nil
+		local DarkFade; DarkFade = ShowBlip.Completed:Once(function()
+			HideBlip:Play()
+		end)
+		
+		local DestroyBlip; DestroyBlip = HideBlip.Completed:Connect(function()
+			if HideBlip.PlaybackState == Enum.PlaybackState.Cancelled then
+				return
+			end
+			DestroyBlip:Disconnect()
+			Debris:AddItem(Blip,ScanTime/1.25)
+			task.delay(ScanTime/1.25,function()
+				activeSpotted[target.Name] = nil
+				activeBlips[target.Name].Looper:Disconnect()
+				activeBlips[target.Name] = nil
 			end)
 		end)
+		
+		local BlipFuncs = {
+			BlipID = Blip,
+			FadeOut = ShowBlip,
+			FadeBlip = HideBlip,
+			Looper = DarkFade
+		}
+		
+		function BlipFuncs:Refresh()
+			self.FadeBlip:Cancel()
+			self.FadeOut:Play()
+		end
+		
+		activeBlips[target.Name] = BlipFuncs
 	end
-	
 	
 	local function checkPlayerTargets(results)
 		for _,Part:BasePart in pairs(results) do
@@ -317,7 +368,19 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			if not Player then continue end
 			if not activeSpotted[Player.Name] then
 				activeSpotted[Player.Name] = true
-				createBlip({Player.Name,(Target.CFrame.Position - Part.Position).Magnitude,Player.Character.HumanoidRootPart.Position,Player.Character,false,{(Target.CFrame.Position - Part.Position).Magnitude,ScanRange}})
+				createBlip({
+					Name = Player.Name,
+					Magnitude = (Target.CFrame.Position - Part.Position).Magnitude,
+					LocalPosition = Target.Position,
+					TargetModel = Player.Character,
+					DRG = false,
+					ExtraInfo = {(Target.CFrame.Position - Part.Position).Magnitude,
+						ScanRange
+					},
+					TargetPart = Part
+				})
+			else
+				activeBlips[Player.Name]:Refresh()
 			end
 		end
 	end
@@ -342,6 +405,16 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			checkPlayerTargets(playerResults)
 		end
 	end)
+	
+	local TargetParentChangedSignal
+	local function recursiveTargetChange()
+		TargetParentChangedSignal = Target:GetPropertyChangedSignal("Parent"):Connect(function()
+			TargetParentChangedSignal:Disconnect()
+			for _,Connection:RBXScriptConnection in pairs(activeTrackers) do
+				Connection:Disconnect()
+			end
+		end)
+	end
 	
 	radarScan:Play()
 	ContextActionService:BindAction("DisableRadar", unbindScanner, true, Enum.KeyCode.P)
