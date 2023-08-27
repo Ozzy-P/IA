@@ -130,13 +130,13 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	local targetInstances = {}
 	local activeSpotted = {}
 	local Target = nil
-	
+
 	for _,Player in pairs(Players:GetChildren()) do
 		if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player ~= LocalPlayer then
 			table.insert(targetInstances,Player.Character.HumanoidRootPart)
 		end
 	end
-	
+
 	local PlayerAdded,LocalPlayerCharacterAdded = nil,nil; 
 	PlayerAdded = Players.PlayerAdded:Connect(function(player:Player)
 		local targetCharacter = player.Character::Model
@@ -153,7 +153,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			table.insert(targetInstances,character:WaitForChild("HumanoidRootPart"))
 		end)
 	end)
-	
+
 	if ScanMode == "Character" then
 		if LocalPlayer.Character and LocalPlayer.Character:WaitForChild("HumanoidRootPart") then
 			Target = LocalPlayer.Character.HumanoidRootPart
@@ -171,40 +171,40 @@ local function LKJE_fake_script() -- Delin.LocalScript
 	elseif ScanMode == "Camera" then
 		Target = Camera
 	end
-	
+
 	local TweeningInfo = TweenInfo.new(ScanTime,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,-1,false)
 	local ScannerInstance = Delin::Frame
 	local radarScan = TweenService:Create(ScannerInstance,TweeningInfo,{Rotation = 360})
 	local overlap = OverlapParams.new()
 	overlap.FilterType = Enum.RaycastFilterType.Include
 	overlap.FilterDescendantsInstances = targetInstances
-	
-	
+
+
 	local function DeconstructCFrame(CFrame)
 		local px,py,pz,xx,yx,zx,xy,yy,zy,xz,yz,zz=CFrame:components()
-	
+
 		local Position=Vector3.new(px,py,pz)
 		local Right=Vector3.new(xx,xy,xz)
 		local Top=Vector3.new(yx,yy,yz)
 		local Back=Vector3.new(zx,zy,zz)
-	
+
 		return Position,Right,Top,Back
 	end
-	
+
 	-- CFrame:inverse() * Vector3
 	local function CFrameTimesVector3(CFrame,Vector)
 		local px,py,pz,xx,yx,zx,xy,yy,zy,xz,yz,zz=CFrame:components()
 		local vx:number,vy:number,vz:number=Vector.X,Vector.Y,Vector.Z
-	
+
 		local rx,ry,rz=vx-px,vy-py,vz-pz--r for Relative
-	
+
 		local HowFarRight=rx*xx+ry*xy+rz*xz
 		local HowFarUp=rx*yx+ry*yy+rz*yz
 		local HowFarBack=rx*zx+ry*zy+rz*zz
-	
+
 		return Vector3.new(HowFarRight,HowFarUp,HowFarBack)
 	end
-	
+
 	local function dragify(Frame)
 		local dragToggle = nil
 		local dragSpeed = .25
@@ -244,14 +244,14 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			end
 		end)
 	end
-	
+
 	local activeTrackers = {}
 	local activeBlips = {}
-	
+
 	local function extendBlip(targetBlip:targetTable)
-		
+
 	end
-	
+
 	local function calcNewDist(targetPos)
 		local Distance = CFrameTimesVector3(Target.CFrame,targetPos)
 		local X_Distance = (Distance - Vector3.new()).X--.Unit.X
@@ -260,8 +260,8 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		local OwO = .0075
 		return .485 + ( X_Distance * OwO * 1 ),.475 + ( Z_Distance * OwO * 1 )
 	end
-	
-	
+
+
 	type targetTable = {Name:string,
 		Magnitude:any,
 		LocalPosition:Vector3,
@@ -269,11 +269,11 @@ local function LKJE_fake_script() -- Delin.LocalScript
 		DRG:any,
 		TargetPart:BasePart
 	}
-	
+
 	local function createBlip(target:targetTable)
-		
+
 		local Blip = Enemy:Clone()
-		
+
 		-- Restrict out of bounds area
 		local Multiplier = 1
 		--[[if ScalingEnabled then
@@ -286,14 +286,14 @@ local function LKJE_fake_script() -- Delin.LocalScript
 				Multiplier = .05
 			end
 		end--]]
-		
+
 		local RadarX, RadarZ = calcNewDist(target.TargetPart.Position)
 		Blip.Position = UDim2.new(RadarX,0,RadarZ,0)
 		Blip.Parent = Delin.Parent
-		local info = TweenInfo.new(ScanTime / 1.3,Enum.EasingStyle.Linear,Enum.EasingDirection.In,0,false,0)
+		local info = TweenInfo.new(ScanTime / 0.75,Enum.EasingStyle.Linear,Enum.EasingDirection.In,0,false,0)
 		local infoFast = TweenInfo.new(ScanTime / 7,Enum.EasingStyle.Linear,Enum.EasingDirection.In,0,false,0)
 		local Goals = {Fade={BackgroundTransparency = 1},FadeIn = {BackgroundTransparency = .125}}
-		
+
 		if target.DRG== true then
 			Blip.BackgroundColor3 = Color3.new(0,0,255)
 			Blip.Size = UDim2.new(0.1, 0, 0.1, 0)
@@ -310,58 +310,71 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			Blip.ZIndex = 2
 			Goals.FadeIn.BackgroundTransparency = 0.125
 		end
-	
+
 		local ShowBlip  = TweenService:Create(Blip, infoFast, Goals.FadeIn)
 		local HideBlip  = TweenService:Create(Blip, info, Goals.Fade)
-	
 		ShowBlip:Play()
 		
-		local posChanged
+		local DarkFade; DarkFade = ShowBlip.Completed:Connect(function()
+			HideBlip:Play()
+		end)
+
+		local BlipFuncs = {
+			BlipID = Blip,
+			ShowBlip = ShowBlip,
+			HideBlip = HideBlip,
+			Looper = DarkFade
+		}
+
+		local posChanged,DestroyBlip
 		posChanged = RunService.Heartbeat:Connect(function()
 			if target.TargetModel.Parent ~= workspace then
-				posChanged:Disconnect()
-				Blip:Destroy()
 				activeSpotted[target.Name] = nil
+				DestroyBlip:Disconnect()
+				posChanged:Disconnect()
+				if BlipFuncs then
+					BlipFuncs.Looper:Disconnect()
+					BlipFuncs.HideBlip:Cancel()
+					BlipFuncs = nil::any
+				end
+				Blip:Destroy()
 				return
 			end
 			local newX, newZ = calcNewDist(target.TargetPart.Position)
 			Blip.Position = UDim2.new(newX,0,newZ,0)
 		end)
-		
+
 		table.insert(activeTrackers, posChanged)
-	
-		local DarkFade; DarkFade = ShowBlip.Completed:Once(function()
-			HideBlip:Play()
-		end)
-		
-		local DestroyBlip; DestroyBlip = HideBlip.Completed:Connect(function()
-			if HideBlip.PlaybackState == Enum.PlaybackState.Cancelled then
-				return
-			end
+
+		DestroyBlip = Blip:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
+			if Blip.BackgroundTransparency <= 0.98 then return end
 			DestroyBlip:Disconnect()
 			Debris:AddItem(Blip,ScanTime/1.25)
 			task.delay(ScanTime/1.25,function()
 				activeSpotted[target.Name] = nil
-				activeBlips[target.Name].Looper:Disconnect()
-				activeBlips[target.Name] = nil
+				BlipFuncs.Looper:Disconnect()
+				BlipFuncs = nil::any
 			end)
 		end)
-		
-		local BlipFuncs = {
-			BlipID = Blip,
-			FadeOut = ShowBlip,
-			FadeBlip = HideBlip,
-			Looper = DarkFade
-		}
-		
+
 		function BlipFuncs:Refresh()
-			self.FadeBlip:Cancel()
-			self.FadeOut:Play()
+			self.HideBlip:Cancel()
+			self.Looper:Disconnect()
+			self:ChangeLooper()
+			self.ShowBlip:Play()
 		end
 		
+		function BlipFuncs:ChangeLooper()
+			local newInfo = TweenInfo.new(ScanTime / 7*(math.clamp(self.BlipID.BackgroundTransparency,0.02,1)),Enum.EasingStyle.Linear,Enum.EasingDirection.In,0,false,0)
+			self.ShowBlip = TweenService:Create(Blip, infoFast, Goals.FadeIn)
+			self.Looper = self.ShowBlip.Completed:Connect(function()
+				self.HideBlip:Play()
+			end)
+		end
+
 		activeBlips[target.Name] = BlipFuncs
 	end
-	
+
 	local function checkPlayerTargets(results)
 		for _,Part:BasePart in pairs(results) do
 			local Player = Players:GetPlayerFromCharacter(Part:FindFirstAncestorWhichIsA("Model"))
@@ -384,28 +397,32 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			end
 		end
 	end
-	
+
 	local function unbindScanner()
+		for _,Connection:RBXScriptConnection in pairs(activeTrackers) do
+			Connection:Disconnect()
+		end
 		ContextActionService:UnbindAction("DisableRadar")
 		ContextActionService:UnbindAction("DBG")
 		LocalPlayerCharacterAdded:Disconnect()
 		PlayerAdded:Disconnect()
 		radarScan:Cancel()
 		RADar:Destroy()
+		activeTrackers = nil::any
 	end
-	
+
 	local function DBG()
 		print(#targetInstances, PlayerAdded and PlayerAdded.Connected, #activeSpotted)
 	end
-	
-	
+
+
 	ScannerInstance:GetPropertyChangedSignal("Rotation"):Connect(function()
 		local playerResults = workspace:GetPartBoundsInBox(((Target.CFrame)*CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0))+((Target.CFrame)*CFrame.Angles(0,math.rad(-ScannerInstance.Rotation),0)).LookVector * ScanRange/2, Vector3.new(5,ScanRange,ScanRange), overlap)
 		if #playerResults > 0 then
 			checkPlayerTargets(playerResults)
 		end
 	end)
-	
+
 	local TargetParentChangedSignal
 	local function recursiveTargetChange()
 		TargetParentChangedSignal = Target:GetPropertyChangedSignal("Parent"):Connect(function()
@@ -415,7 +432,7 @@ local function LKJE_fake_script() -- Delin.LocalScript
 			end
 		end)
 	end
-	
+
 	radarScan:Play()
 	ContextActionService:BindAction("DisableRadar", unbindScanner, true, Enum.KeyCode.P)
 	ContextActionService:BindAction("DBG", DBG, false, Enum.KeyCode.M)
